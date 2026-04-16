@@ -1,0 +1,508 @@
+/**
+ * @license
+ * SPDX-License-Identifier: Apache-2.0
+ */
+import {useState, useRef, useEffect} from 'react';
+import confetti from 'canvas-confetti';
+import { User, Home, FileCheck, Settings } from 'lucide-react';
+
+export default function App() {
+  const [activeMenu, setActiveMenu] = useState('Beranda');
+  const [members, setMembers] = useState(() => {
+    const saved = localStorage.getItem('arisan_members');
+    if (saved) return JSON.parse(saved);
+    return [
+      { id: 1, name: 'ALBY', status: 'PENDING', color: '#FF6B6B', waNumber: '' },
+      { id: 2, name: 'AMES', status: 'PENDING', color: '#4ECDC4', waNumber: '' },
+      { id: 3, name: 'AMIN', status: 'PENDING', color: '#45B7D1', waNumber: '' },
+      { id: 4, name: 'AZAM', status: 'PENDING', color: '#96CEB4', waNumber: '' },
+      { id: 5, name: 'BERGAWA', status: 'PENDING', color: '#FFEEAD', waNumber: '' },
+      { id: 6, name: 'DEDE', status: 'PENDING', color: '#D4A5A5', waNumber: '' },
+      { id: 7, name: 'DHINDA', status: 'PENDING', color: '#9B59B6', waNumber: '' },
+      { id: 8, name: 'EAYAD BACHTIAR', status: 'PENDING', color: '#3498DB', waNumber: '' },
+      { id: 9, name: 'ESAL', status: 'PENDING', color: '#E67E22', waNumber: '' },
+      { id: 10, name: 'EZHAL', status: 'PENDING', color: '#2ECC71', waNumber: '' },
+      { id: 11, name: 'EZHAL NAOMI', status: 'PENDING', color: '#F1C40F', waNumber: '' },
+      { id: 12, name: 'FARMOZA', status: 'PENDING', color: '#E74C3C', waNumber: '' },
+      { id: 13, name: 'FERIL', status: 'PENDING', color: '#1ABC9C', waNumber: '' },
+      { id: 14, name: 'FORMOZA', status: 'PENDING', color: '#8E44AD', waNumber: '' },
+      { id: 15, name: 'FORMOZA', status: 'PENDING', color: '#2980B9', waNumber: '' },
+      { id: 16, name: 'FORMOZA', status: 'PENDING', color: '#D35400', waNumber: '' },
+      { id: 17, name: 'FORMOZA', status: 'PENDING', color: '#27AE60', waNumber: '' },
+      { id: 18, name: 'MARIYAH', status: 'PENDING', color: '#F39C12', waNumber: '' },
+      { id: 19, name: 'MAY', status: 'PENDING', color: '#C0392B', waNumber: '' },
+      { id: 20, name: 'MESYA', status: 'PENDING', color: '#16A085', waNumber: '' },
+      { id: 21, name: 'MHEY MHEY', status: 'PENDING', color: '#8E44AD', waNumber: '' },
+      { id: 22, name: 'MIKHA', status: 'PENDING', color: '#2980B9', waNumber: '' },
+      { id: 23, name: 'NAOMI', status: 'PENDING', color: '#D35400', waNumber: '' },
+      { id: 24, name: 'NAOMI2', status: 'PENDING', color: '#27AE60', waNumber: '' },
+      { id: 25, name: 'NARA', status: 'PENDING', color: '#F39C12', waNumber: '' },
+      { id: 26, name: 'NAYA', status: 'PENDING', color: '#C0392B', waNumber: '' },
+      { id: 27, name: 'QUEEN', status: 'PENDING', color: '#16A085', waNumber: '' },
+      { id: 28, name: 'REZA', status: 'PENDING', color: '#8E44AD', waNumber: '' },
+      { id: 29, name: 'ZHIZI', status: 'PENDING', color: '#2980B9', waNumber: '' },
+    ];
+  });
+  const [newMemberName, setNewMemberName] = useState('');
+  const [newMemberWa, setNewMemberWa] = useState('');
+  const [winner, setWinner] = useState<string | null>(() => {
+    return localStorage.getItem('arisan_winner');
+  });
+  const [winnerHistory, setWinnerHistory] = useState<{ name: string; date: Date }[]>(() => {
+    const saved = localStorage.getItem('arisan_history');
+    if (saved) {
+      return JSON.parse(saved).map((item: any) => ({ ...item, date: new Date(item.date) }));
+    }
+    return [];
+  });
+  const [arisanAmount, setArisanAmount] = useState<number>(() => {
+    const saved = localStorage.getItem('arisan_amount');
+    return saved ? Number(saved) : 100000;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('arisan_members', JSON.stringify(members));
+  }, [members]);
+
+  useEffect(() => {
+    if (winner) localStorage.setItem('arisan_winner', winner);
+  }, [winner]);
+
+  useEffect(() => {
+    localStorage.setItem('arisan_history', JSON.stringify(winnerHistory));
+  }, [winnerHistory]);
+
+  useEffect(() => {
+    localStorage.setItem('arisan_amount', arisanAmount.toString());
+  }, [arisanAmount]);
+
+  const addMember = () => {
+    if (newMemberName.trim()) {
+      setMembers([...members, { id: Date.now(), name: newMemberName, status: 'PENDING', color: '#FFE66D', waNumber: newMemberWa }]);
+      setNewMemberName('');
+      setNewMemberWa('');
+    }
+  };
+
+  const [isSpinning, setIsSpinning] = useState(false);
+  const [timer, setTimer] = useState(10);
+  const [audioUrl, setAudioUrl] = useState(() => {
+    return localStorage.getItem('arisan_audio') || '';
+  });
+  const [showSisaModal, setShowSisaModal] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  const getDaysLeft = () => {
+    if (winnerHistory.length === 0) return 'Siap';
+    const lastDate = new Date(winnerHistory[0].date);
+    const nextDate = new Date(lastDate.getTime() + 7 * 24 * 60 * 60 * 1000);
+    const today = new Date();
+    const diffTime = nextDate.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    if (diffDays <= 0) return 'Hari Ini';
+    return `H-${diffDays}`;
+  };
+
+  const getSisaMembers = () => {
+    const winnerNames = winnerHistory.map(w => w.name);
+    return members.filter(m => !winnerNames.includes(m.name));
+  };
+
+  const handleKocok = () => {
+    const eligibleMembers = members.filter(m => m.status === 'LUNAS');
+    
+    if (eligibleMembers.length === 0) {
+      alert('Tidak ada anggota yang memenuhi syarat (LUNAS) untuk dikocok.');
+      return;
+    }
+
+    let spinDuration = 10;
+    if (audioRef.current && audioRef.current.duration && !isNaN(audioRef.current.duration) && audioRef.current.duration !== Infinity) {
+      spinDuration = Math.ceil(audioRef.current.duration);
+    }
+
+    setIsSpinning(true);
+    setTimer(spinDuration);
+    
+    if (audioRef.current && audioUrl) {
+      audioRef.current.play().catch(e => {
+        console.error("Audio play failed:", e);
+        // Continue spinning even if audio fails
+      });
+    }
+    
+    const interval = setInterval(() => {
+      setTimer((prev) => prev - 1);
+    }, 1000);
+    
+    setTimeout(() => {
+      clearInterval(interval);
+      setIsSpinning(false);
+      
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      }
+      
+      const randomIndex = Math.floor(Math.random() * eligibleMembers.length);
+      const newWinner = eligibleMembers[randomIndex].name;
+      setWinner(newWinner);
+      setWinnerHistory(prev => [{ name: newWinner, date: new Date() }, ...prev]);
+      confetti({
+        particleCount: 150,
+        spread: 70,
+        origin: { y: 0.6 }
+      });
+      alert(`Selamat! Pemenang arisan putaran ini adalah: ${newWinner}`);
+    }, spinDuration * 1000);
+  };
+
+  const updateStatus = (id: number, status: 'LUNAS' | 'PENDING') => {
+    setMembers(members.map(m => m.id === id ? { ...m, status } : m));
+  };
+
+  const syncMembers = () => {
+    alert('Data berhasil disimpan!');
+  };
+
+  const deleteMember = (id: number) => {
+    setMembers(members.filter(m => m.id !== id));
+  };
+
+  const menuItems = [
+    {name: 'Beranda', icon: <Home className="w-5 h-5" />},
+    {name: 'Peserta', icon: <User className="w-5 h-5" />},
+    {name: 'Status Iuran', icon: <FileCheck className="w-5 h-5" />},
+    {name: 'Pengaturan', icon: <Settings className="w-5 h-5" />},
+  ];
+
+  const renderContent = () => {
+    switch (activeMenu) {
+      case 'Beranda':
+        return (
+          <>
+            {/* Spinner Panel */}
+            <div className="flex flex-col items-center justify-center rounded-[16px] bg-[#FF6B6B] p-[16px] text-center text-white">
+              <h3 className="text-[16px] font-extrabold">LUCKY SPINNER</h3>
+              <p className={`mt-[2px] text-[10px] opacity-80 ${isSpinning ? 'animate-pulse' : ''}`}>
+                {isSpinning ? `${timer}s` : 'Timer Mundur'}
+              </p>
+              <div className="relative my-[16px] flex h-[140px] w-[140px] md:h-[180px] md:w-[180px] items-center justify-center rounded-full bg-[#2F2FA2] shadow-xl">
+                {/* Lights */}
+                {[...Array(12)].map((_, i) => (
+                  <div
+                    key={i}
+                    className="absolute w-full h-full flex justify-center"
+                    style={{ transform: `rotate(${i * 30}deg)` }}
+                  >
+                    <div
+                      className={`mt-[6px] md:mt-[8px] w-[8px] h-[8px] md:w-[12px] md:h-[12px] rounded-full ${
+                        isSpinning 
+                          ? (i % 2 === 0 ? 'bg-[#FFE66D] shadow-[0_0_8px_#FFE66D] animate-[pulse_0.3s_ease-in-out_infinite]' : 'bg-[#FF6B6B] shadow-[0_0_8px_#FF6B6B] animate-[pulse_0.3s_ease-in-out_infinite_0.15s]') 
+                          : 'bg-[#FFE66D]/50'
+                      }`}
+                    />
+                  </div>
+                ))}
+                {/* Inner Spinner */}
+                <div className="relative flex h-[110px] w-[110px] md:h-[140px] md:w-[140px] items-center justify-center rounded-full border-[4px] border-white/20 overflow-hidden">
+                  <div className={`h-full w-full rounded-full bg-[conic-gradient(#4ECDC4_0deg_60deg,#FFE66D_60deg_120deg,#ffffff_120deg_180deg,#4ECDC4_180deg_240deg,#FFE66D_240deg_300deg,#ffffff_300deg_360deg)] ${isSpinning ? 'animate-[spin_2s_linear_infinite]' : ''}`}></div>
+                </div>
+                {/* Pointer */}
+                <div className="absolute -top-[10px] z-10 h-[24px] w-[24px] bg-[#FFE66D] [clip-path:polygon(50%_0%,0%_100%,100%_100%)] transition-transform duration-[500ms] ease-in-out drop-shadow-md" style={{ transform: isSpinning ? 'rotate(220deg)' : 'rotate(180deg)', animation: isSpinning ? 'swing 1s ease-in-out infinite' : 'none' }}></div>
+                {/* Center Dot */}
+                <div className="absolute h-[30px] w-[30px] rounded-full bg-white shadow-md z-10"></div>
+              </div>
+              <div className="rounded-[8px] bg-black/20 p-[6px_12px] text-[12px] font-bold">
+                {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(members.length * arisanAmount).replace('Rp', 'Rp\u00A0')}
+              </div>
+            </div>
+
+            {/* Notification Banner */}
+            <div className="md:col-span-2 flex items-center gap-[8px] rounded-[12px] bg-[#4ECDC4] p-[8px_16px] text-[11px] font-semibold text-[#2F2FA2]">
+              <span>🔔</span>
+              <span className="whitespace-pre-line text-center w-full">{winner ? `Selamat!\nPemenang Arisan Putaran Ini Adalah:\n${winner.toUpperCase()}` : 'Belum Ada Pemenang Putaran Ini.'}</span>
+            </div>
+
+            {/* Stats Footer */}
+            <div className="md:col-span-2 grid grid-cols-3 gap-[10px]">
+              <div 
+                onClick={() => setShowSisaModal(true)}
+                className="rounded-[12px] border border-white/10 bg-white/10 p-[12px] cursor-pointer hover:bg-white/20 transition-colors"
+              >
+                <span className="text-[10px] uppercase tracking-[1px] opacity-60">Sisa</span>
+                <span className="mt-[2px] block text-[16px] font-extrabold">{getSisaMembers().length}</span>
+              </div>
+              <div className="rounded-[12px] border border-white/10 bg-white/10 p-[12px]">
+                <span className="text-[10px] uppercase tracking-[1px] opacity-60">Pemenang</span>
+                <span className="mt-[2px] block text-[16px] font-extrabold text-[#FFE66D] truncate">
+                  {winnerHistory.length > 0 ? winnerHistory[0].name : '-'}
+                </span>
+              </div>
+              <div className="rounded-[12px] border border-white/10 bg-white/10 p-[12px]">
+                <span className="text-[10px] uppercase tracking-[1px] opacity-60">Tempo</span>
+                <span className="mt-[2px] block text-[16px] font-extrabold">{getDaysLeft()}</span>
+              </div>
+            </div>
+            
+            {/* Winner History */}
+            <div className="md:col-span-2 rounded-[12px] bg-white/5 p-[12px] mt-[10px]">
+              <h4 className="text-[10px] uppercase tracking-[1px] opacity-60 mb-[8px]">Riwayat Pemenang</h4>
+              {winnerHistory.length > 0 ? (
+                <div className="flex flex-col gap-[6px]">
+                  {winnerHistory.map((w, index) => (
+                    <div key={index} className="flex justify-between items-center rounded-full bg-[#FFE66D] px-[8px] py-[4px] text-[10px] font-bold text-[#2F2FA2]">
+                      <span>{w.name}</span>
+                      <span className="opacity-70">
+                        {new Date(w.date).toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: '2-digit' })}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-[12px] text-center opacity-50 py-[10px]">
+                  Belum ada riwayat pemenang.
+                </div>
+              )}
+            </div>
+          </>
+        );
+      case 'Peserta':
+        return (
+          <div className="md:col-span-2 rounded-[16px] bg-white p-[16px] text-[#2F2FA2] shadow-sm">
+            <h3 className="text-[14px] font-bold mb-[12px]">Manajemen Anggota</h3>
+            <div className="flex flex-col gap-[8px] mb-[16px]">
+              <input
+                type="text"
+                value={newMemberName}
+                onChange={(e) => setNewMemberName(e.target.value)}
+                placeholder="Nama baru"
+                className="w-full p-[8px] text-[12px] rounded-[8px] border border-gray-300"
+              />
+              <input
+                type="text"
+                value={newMemberWa}
+                onChange={(e) => setNewMemberWa(e.target.value)}
+                placeholder="No WA"
+                className="w-full p-[8px] text-[12px] rounded-[8px] border border-gray-300"
+              />
+              <button onClick={addMember} className="w-full bg-[#4ECDC4] text-[#2F2FA2] p-[8px_16px] text-[12px] rounded-[8px] font-bold">Tambah</button>
+            </div>
+            <div className="space-y-[8px]">
+              {members.map((member) => (
+                <div key={member.id} className="flex items-center justify-between p-[10px] bg-[#F1F5F9] rounded-[12px]">
+                  <div>
+                    <div className="text-[12px] font-bold">{member.name}</div>
+                    <div className="text-[10px] opacity-70">{member.waNumber || '-'}</div>
+                  </div>
+                  <div className="flex gap-[8px]">
+                    <button className="text-[10px] text-[#4ECDC4]">Edit</button>
+                    <button onClick={() => deleteMember(member.id)} className="text-[10px] text-[#FF6B6B]">Hapus</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      case 'Status Iuran':
+        return (
+          <div className="md:col-span-2 rounded-[16px] bg-white p-[16px] text-[#2F2FA2] shadow-sm">
+            <div className="mb-[12px] flex items-center justify-between">
+              <h3 className="text-[14px] font-bold">Status Iuran Anggota</h3>
+              <button onClick={syncMembers} className="text-[10px] bg-[#2F2FA2] text-white p-[4px_8px] rounded-[6px] font-bold">Simpan</button>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-[8px]">
+              {members.map((member) => (
+                <div key={member.id} className="flex items-center gap-[10px] rounded-[12px] bg-[#F1F5F9] p-[8px]">
+                  <div className="flex h-[32px] w-[32px] items-center justify-center rounded-full font-bold text-white" style={{ backgroundColor: member.color }}>
+                    {member.name.split(' ').map(n => n[0]).join('')}
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-[12px] font-bold">{member.name}</div>
+                    <div className="flex gap-[4px] mt-[4px]">
+                      <button onClick={() => updateStatus(member.id, 'LUNAS')} className="text-[9px] bg-[#D1FAE5] text-[#065F46] p-[2px_4px] rounded-[4px] font-bold">Lunas</button>
+                      <button onClick={() => updateStatus(member.id, 'PENDING')} className="text-[9px] bg-[#FEF3C7] text-[#92400E] p-[2px_4px] rounded-[4px] font-bold">Pending</button>
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-end gap-[2px]">
+                    <div className={`rounded-[4px] p-[2px_6px] text-[10px] font-bold ${member.status === 'LUNAS' ? 'bg-[#D1FAE5] text-[#065F46]' : 'bg-[#FEF3C7] text-[#92400E]'}`}>
+                      {member.status}
+                    </div>
+                    <div className="text-[10px] font-bold text-[#2F2FA2]">
+                      {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(arisanAmount).replace('Rp', 'Rp\u00A0')}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      case 'Pengaturan':
+        return (
+          <div className="md:col-span-2 rounded-[16px] bg-white p-[16px] text-[#2F2FA2] shadow-sm">
+            <h3 className="text-[14px] font-bold mb-[12px]">Pengaturan Arisan</h3>
+            <div className="flex flex-col gap-[8px]">
+              <label className="text-[12px] font-semibold">Nominal Iuran per Anggota</label>
+              <div className="relative">
+                <span className="absolute left-[8px] top-[8px] text-[12px] text-gray-500">Rp</span>
+                <input
+                  type="text"
+                  value={arisanAmount === 0 ? '' : new Intl.NumberFormat('id-ID').format(arisanAmount)}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/\./g, '');
+                    if (!isNaN(Number(val))) {
+                      setArisanAmount(Number(val));
+                    }
+                  }}
+                  className="w-full p-[8px_8px_8px_28px] text-[12px] rounded-[8px] border border-gray-300"
+                />
+              </div>
+              <button 
+                onClick={() => alert(`Nominal iuran diperbarui menjadi: Rp ${new Intl.NumberFormat('id-ID').format(arisanAmount)}`)}
+                className="w-full bg-[#FF6B6B] text-white p-[8px] text-[12px] font-bold rounded-[8px] hover:bg-[#ff5252] transition-colors"
+              >
+                OK
+              </button>
+              <label className="text-[12px] font-semibold mt-[8px]">Unggah File Audio Spinner (MP3)</label>
+              <input
+                type="file"
+                accept="audio/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    if (file.size > 3 * 1024 * 1024) {
+                      alert('Ukuran file terlalu besar. Maksimal 3MB untuk disimpan di browser.');
+                      return;
+                    }
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                      if (event.target?.result) {
+                        setAudioUrl(event.target.result as string);
+                      }
+                    };
+                    reader.readAsDataURL(file);
+                  }
+                }}
+                className="w-full p-[8px] text-[12px] rounded-[8px] border border-gray-300 bg-white mb-[8px]"
+              />
+              <button 
+                onClick={() => {
+                  localStorage.setItem('arisan_audio', audioUrl);
+                  alert('Pengaturan audio berhasil disimpan!');
+                }}
+                className="w-full bg-[#FF6B6B] text-white p-[8px] text-[12px] font-bold rounded-[8px] hover:bg-[#ff5252] transition-colors"
+              >
+                Simpan Audio
+              </button>
+            </div>
+          </div>
+        );
+      default:
+        return (
+          <div className="md:col-span-2 flex h-full items-center justify-center rounded-[24px] bg-white/5 text-[24px] font-bold">
+            Halaman {activeMenu} sedang dalam pengembangan.
+          </div>
+        );
+    }
+  };
+
+  return (
+    <div className="flex h-screen w-full overflow-hidden bg-[#2F2FA2] font-sans text-[#F7FFF7]">
+      {audioUrl && <audio ref={audioRef} src={audioUrl} />}
+      {/* Sidebar (Desktop) */}
+      <div className="hidden md:flex w-[200px] flex-col border-r border-white/10 bg-white/5 p-[20px]">
+        <div className="mb-[30px] flex items-center gap-[8px] text-[20px] font-extrabold text-[#FF6B6B]">
+          <span>Arisan IndoVWT</span>
+        </div>
+        {menuItems.map((item) => (
+          <div
+            key={item.name}
+            onClick={() => setActiveMenu(item.name)}
+            className={`mb-[8px] flex cursor-pointer items-center gap-[10px] rounded-[8px] p-[8px_12px] text-[14px] font-semibold transition-colors ${
+              activeMenu === item.name ? 'bg-[#FF6B6B] text-white' : 'hover:bg-white/5'
+            }`}
+          >
+            <span className="flex items-center justify-center w-[24px] h-[24px] text-[20px]">{item.icon}</span>
+            {item.name}
+          </div>
+        ))}
+      </div>
+
+      {/* Main Content */}
+      <div className="flex flex-1 flex-col overflow-y-auto relative">
+        <div className="flex flex-col gap-[16px] p-[16px] pb-[80px] md:pb-[16px]">
+          <div className="flex items-center justify-between gap-[10px]">
+            <div className="header-info flex flex-col leading-tight">
+              <h1 className="text-[18px] font-bold">Arisan IndoVWT</h1>
+              <span className="text-[10px] opacity-70">Phinisi Nusantara</span>
+              <span className="text-[10px] font-semibold text-[#FFE66D] mt-[2px]">
+                Putaran Minggu ke-{winnerHistory.length + 1}
+              </span>
+            </div>
+            <button onClick={handleKocok} className="rounded-[20px] bg-[#4ECDC4] p-[8px_16px] text-[12px] font-bold uppercase tracking-[0.5px] text-[#2F2FA2]">
+              Kocok
+            </button>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-[16px]">
+            {renderContent()}
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom Navigation (Mobile) */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 flex justify-around bg-[#2F2FA2] border-t border-white/10 p-[10px] z-10">
+        {menuItems.map((item) => (
+          <div
+            key={item.name}
+            onClick={() => setActiveMenu(item.name)}
+            className={`flex flex-col items-center gap-[5px] p-[5px] text-[10px] font-semibold ${
+              activeMenu === item.name ? 'text-[#FF6B6B]' : 'text-[#F7FFF7]/70'
+            }`}
+          >
+            <span className="flex items-center justify-center h-[24px] text-[20px]">{item.icon}</span>
+            {item.name}
+          </div>
+        ))}
+      </div>
+
+      {/* Sisa Modal */}
+      {showSisaModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-[20px]">
+          <div className="w-full max-w-sm rounded-[16px] bg-white p-[20px] text-[#2F2FA2] shadow-xl">
+            <div className="mb-[16px] flex items-center justify-between">
+              <h3 className="text-[16px] font-bold">Belum Dapat Arisan</h3>
+              <button 
+                onClick={() => setShowSisaModal(false)}
+                className="text-[20px] font-bold leading-none text-gray-400 hover:text-gray-600"
+              >
+                &times;
+              </button>
+            </div>
+            <div className="max-h-[60vh] overflow-y-auto">
+              {getSisaMembers().length > 0 ? (
+                <div className="flex flex-col gap-[8px]">
+                  {getSisaMembers().map((member, index) => (
+                    <div key={member.id} className="flex items-center gap-[10px] rounded-[8px] border border-gray-100 p-[8px]">
+                      <div className="flex h-[24px] w-[24px] items-center justify-center rounded-full bg-[#4ECDC4] text-[10px] font-bold text-white">
+                        {index + 1}
+                      </div>
+                      <span className="text-[12px] font-bold">{member.name}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center text-[12px] opacity-60">Semua peserta sudah dapat arisan.</div>
+              )}
+            </div>
+            <button 
+              onClick={() => setShowSisaModal(false)}
+              className="mt-[16px] w-full rounded-[8px] bg-[#2F2FA2] p-[10px] text-[12px] font-bold text-white"
+            >
+              Tutup
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

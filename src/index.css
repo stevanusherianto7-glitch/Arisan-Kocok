@@ -1,0 +1,20 @@
+@import "tailwindcss";
+
+@layer base {
+  /* Custom scrollbar for Webkit browsers */
+  ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #FF6B6B;
+    border-radius: 2px;
+  }
+  @keyframes swing {
+    0%, 100% { transform: rotate(180deg); }
+    50% { transform: rotate(220deg); }
+  }
+}
