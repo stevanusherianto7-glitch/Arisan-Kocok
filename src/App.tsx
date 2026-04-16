@@ -19,7 +19,7 @@ export default function App() {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-[#2F2FA2] text-[#F7FFF7]">
         <div className="flex flex-col items-center">
-          <div className="mb-[16px] h-[40px] w-[40px] animate-spin rounded-full border-[4px] border-[#4ECDC4] border-t-transparent shadow-md"></div>
+          <img src="/icons/logo.svg" alt="Phinisi Logo" className="mb-[16px] h-[80px] w-[80px] animate-pulse drop-shadow-lg" />
           <p className="text-[14px] font-bold tracking-[1px]">MEMUAT DATA...</p>
         </div>
       </div>
