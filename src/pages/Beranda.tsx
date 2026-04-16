@@ -85,20 +85,8 @@ export default function Beranda({
       {/* Winner History */}
       <div className="md:col-span-2 rounded-[12px] border-2 border-white/10 bg-white/5 p-[12px] mt-[10px] border-b-[4px] shadow-[0_4px_0_rgba(0,0,0,0.1)]">
         <h4 className="text-[10px] uppercase tracking-[1px] opacity-60 mb-[8px]">Riwayat Pemenang</h4>
-        <style>{`
-          .custom-scroll::-webkit-scrollbar {
-            width: 1px;
-          }
-          .custom-scroll::-webkit-scrollbar-track {
-            background: transparent;
-          }
-          .custom-scroll::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 10px;
-          }
-        `}</style>
         {winnerHistory.length > 0 ? (
-          <div className="flex flex-col gap-[6px] max-h-[120px] overflow-y-auto custom-scroll pr-[2px]">
+          <div className="flex flex-col gap-[6px] max-h-[120px] overflow-y-auto pr-[2px]">
             {winnerHistory.map((w, index) => (
               <div key={index} className="flex justify-between items-center rounded-full bg-[#FFE66D] px-[8px] py-[4px] text-[10px] font-bold text-[#2F2FA2] shrink-0">
                 <span>{w.name}</span>

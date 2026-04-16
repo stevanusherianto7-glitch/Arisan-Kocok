@@ -141,26 +141,29 @@ export const useArisan = () => {
   }, []);
 
   // --- CUSTOM STATE WRAPPERS (Syncs locally or to DB) ---
-  const setMembers = async (val: Member[] | ((prev: Member[]) => Member[])) => {
-    const next = typeof val === 'function' ? val(members) : val;
-    setMembersState(next);
-    
-    if (!hasSupabase) {
-      localStorage.setItem('arisan_members', JSON.stringify(next));
-      return;
-    }
-
-    try {
-      const upsertData = next.map(m => ({ id: m.id, name: m.name, status: m.status, color: m.color, wa_number: m.waNumber }));
-      if (upsertData.length > 0) await supabase.from('members').upsert(upsertData);
+  const setMembers = (val: Member[] | ((prev: Member[]) => Member[])) => {
+    setMembersState(prev => {
+      const next = typeof val === 'function' ? val(prev) : val;
       
-      const ids = next.map(m => m.id);
-      if (ids.length > 0) {
-         await supabase.from('members').delete().not('id', 'in', `(${ids.join(',')})`);
+      if (!hasSupabase) {
+        localStorage.setItem('arisan_members', JSON.stringify(next));
       } else {
-         await supabase.from('members').delete().gt('id', 0);
+        (async () => {
+          try {
+            const upsertData = next.map(m => ({ id: m.id, name: m.name, status: m.status, color: m.color, wa_number: m.waNumber }));
+            if (upsertData.length > 0) await supabase.from('members').upsert(upsertData);
+            
+            const ids = next.map(m => m.id);
+            if (ids.length > 0) {
+               await supabase.from('members').delete().not('id', 'in', `(${ids.join(',')})`);
+            } else {
+               await supabase.from('members').delete().gt('id', 0);
+            }
+          } catch(e) { console.error(e) }
+        })();
       }
-    } catch(e) { console.error(e) }
+      return next;
+    });
   };
 
   const setWinner = async (val: string | null | ((prev: string | null) => string | null)) => {
@@ -184,26 +187,29 @@ export const useArisan = () => {
     else supabase.from('settings').upsert({ key: 'arisan_audio', value: next }).then();
   };
 
-  const setWinnerHistory = async (val: WinnerHistoryItem[] | ((prev: WinnerHistoryItem[]) => WinnerHistoryItem[])) => {
-    const next = typeof val === 'function' ? val(winnerHistory) : val;
-    setWinnerHistoryState(next);
-    
-    if (!hasSupabase) {
-       localStorage.setItem('arisan_history', JSON.stringify(next));
-       return;
-    }
-
-    try {
-      if (next.length === 0) {
-         await supabase.from('winner_history').delete().gt('id', 0);
+  const setWinnerHistory = (val: WinnerHistoryItem[] | ((prev: WinnerHistoryItem[]) => WinnerHistoryItem[])) => {
+    setWinnerHistoryState(prev => {
+      const next = typeof val === 'function' ? val(prev) : val;
+      
+      if (!hasSupabase) {
+         localStorage.setItem('arisan_history', JSON.stringify(next));
       } else {
-         await supabase.from('winner_history').delete().gt('id', 0);
-         const inserts = next.map(h => ({ member_id: h.id, name: h.name, win_date: h.date.toISOString() }));
-         await supabase.from('winner_history').insert(inserts);
+         (async () => {
+          try {
+            if (next.length === 0) {
+               await supabase.from('winner_history').delete().gt('id', 0);
+            } else {
+               await supabase.from('winner_history').delete().gt('id', 0);
+               const inserts = next.map(h => ({ member_id: h.id, name: h.name, win_date: h.date.toISOString() }));
+               await supabase.from('winner_history').insert(inserts);
+            }
+          } catch (e) {
+            console.error('History sync err', e);
+          }
+         })();
       }
-    } catch (e) {
-      console.error('History sync err', e);
-    }
+      return next;
+    });
   };
 
   const getDaysLeft = () => {
