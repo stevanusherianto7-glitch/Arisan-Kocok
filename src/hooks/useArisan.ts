@@ -276,6 +276,16 @@ export const useArisan = () => {
         spread: 70,
         origin: { y: 0.6 }
       });
+
+      // Text-to-Speech (TTS) Suara AI Google/Browser
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel(); // Menghentikan suara sebelumnya jika ada
+        const pesanAIPemenang = new SpeechSynthesisUtterance(`Selamat! Pemenang arisan putaran ini adalah, ${newWinnerName}`);
+        pesanAIPemenang.lang = 'id-ID'; // Bahasa Indonesia
+        pesanAIPemenang.rate = 0.9;     // Sedikit lebih lambat agar jelas
+        pesanAIPemenang.pitch = 1.1;    // Sedikit lebih tinggi agar terdengar ceria
+        window.speechSynthesis.speak(pesanAIPemenang);
+      }
     }, spinDuration * 1000);
   };
 
