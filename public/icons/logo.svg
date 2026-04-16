@@ -1,0 +1,27 @@
+<svg viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="512" height="512" rx="100" fill="#ffffff"/>
+  
+  <!-- Back Sail -->
+  <path d="M190 270 C230 190 210 140 210 140 C260 170 280 240 260 280 Z" fill="#151A2C"/>
+  
+  <!-- Main Sail -->
+  <path d="M225 285 C245 170 250 110 250 110 C320 170 330 250 285 300 Z" fill="#151A2C"/>
+  <path d="M250 110 L250 300" stroke="#ffffff" stroke-width="3"/>
+  
+  <!-- Front Sail -->
+  <path d="M285 295 C330 210 335 150 335 150 C390 210 390 270 345 305 Z" fill="#151A2C"/>
+  
+  <!-- Masts & Detailing -->
+  <rect x="245" y="90" width="8" height="220" rx="4" fill="#151A2C"/>
+  <rect x="330" y="130" width="6" height="150" rx="3" fill="#151A2C"/>
+  
+  <!-- Hull -->
+  <path d="M120 280 L160 295 C250 310 340 310 410 270 C380 340 280 370 190 350 C150 340 130 315 120 280 Z" fill="#151A2C"/>
+  <path d="M130 300 C220 325 320 325 390 290" stroke="#ffffff" stroke-width="6" stroke-linecap="round"/>
+  
+  <!-- Waves Layer 1 -->
+  <path d="M110 365 C190 330 270 365 330 390 C380 408 420 390 440 365 C390 405 320 425 270 410 C190 385 150 390 110 365 Z" fill="#0D9488"/>
+  
+  <!-- Waves Layer 2 -->
+  <path d="M160 395 C230 370 280 395 330 415 C380 435 410 410 420 395 C370 430 300 445 250 420 C200 400 180 405 160 395 Z" fill="#0F766E"/>
+</svg>
