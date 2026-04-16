@@ -276,7 +276,6 @@ export const useArisan = () => {
         spread: 70,
         origin: { y: 0.6 }
       });
-      alert(`Selamat! Pemenang arisan putaran ini adalah: ${newWinnerName}`);
     }, spinDuration * 1000);
   };
 
